@@ -1,0 +1,80 @@
+version: '3.3'
+
+services:
+
+  nginx-balancer:
+    restart: always
+    image: nginx:latest
+    env_file:
+      - ./env/configuration.env
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx-balancer/site.conf:/etc/nginx/conf.d/site.conf
+    depends_on:
+      - php-fpm
+      - php-fpm1
+      - php-fpm2
+      - nginx-cdn
+      - nginx-cdn1
+
+  nginx-cdn:
+    restart: always
+    image: nginx:latest
+    env_file:
+      - ./env/configuration.env
+    volumes:
+      - ./project-src/public/assets:/src/public
+      - ./docker/nginx-cdn/site.conf:/etc/nginx/conf.d/site.conf
+
+  nginx-cdn1:
+    restart: always
+    image: nginx:latest
+    env_file:
+      - ./env/configuration.env
+    volumes:
+      - ./project-src/public/assets:/src/public
+      - ./docker/nginx-cdn/site.conf:/etc/nginx/conf.d/site.conf
+
+  php-fpm:
+    restart: always
+    build:
+      context: ./docker/php
+    env_file:
+      - ./env/configuration.env
+    volumes:
+      - ./project-src:/src
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    depends_on:
+      - database-redis
+
+
+  php-fpm1:
+    restart: always
+    build:
+      context: ./docker/php
+    env_file:
+      - ./env/configuration.env
+    volumes:
+      - ./project-src:/src
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    depends_on:
+      - database-redis
+
+
+  php-fpm2:
+    restart: always
+    build:
+      context: ./docker/php
+    env_file:
+      - ./env/configuration.env
+    volumes:
+      - ./project-src:/src
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    depends_on:
+      - database-redis
+
+  database-redis:
+    image: redis
+    volumes:
+      - ./storage/redis:/bitnami/redis/data
